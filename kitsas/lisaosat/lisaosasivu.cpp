@@ -181,6 +181,23 @@ void LisaosaSivu::naytaLoki()
 void LisaosaSivu::passivoi()
 {
     if( listView_->currentIndex().isValid()) {
+
+        const QString nimi = listView_->currentIndex().data(LisaosaListModel::NimiRooli).toString();
+
+        if (nimi.contains("Kitsas Pro Palkat")) {
+
+            QMessageBox viestiloota;
+            viestiloota.setText(tr("Kitsas Pro Palkat -lisäosan poistaminen käytöstä ei riitä katkaisemaan laskutusta lisäosasta tämän kirjanpidon osalta. Otathan lisäksi yhteyttä käyttäjätukeen kitsas.helpdesk@taopa.fi"));
+            viestiloota.exec();
+        }
+
+        if (nimi.contains("Kitsas Pro Maksut")) {
+
+            QMessageBox viestiloota;
+            viestiloota.setText(tr("Kitsas Pro Maksut -lisäosan poistaminen käytöstä ei riitä katkaisemaan laskutusta lisäosasta tämän kirjanpidon osalta. Otathan lisäksi yhteyttä käyttäjätukeen kitsas.helpdesk@taopa.fi"));
+            viestiloota.exec();
+        }
+
         const QString addonId = listView_->currentIndex().data(LisaosaListModel::IdRooli).toString();
 
         KpKysely* kysely = kp()->pilvi()->loginKysely("/v1/permissions", KpKysely::PATCH);

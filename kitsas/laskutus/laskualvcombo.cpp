@@ -29,6 +29,7 @@ LaskuAlvCombo::LaskuAlvCombo(QWidget *parent) :
 void LaskuAlvCombo::alusta(LaskuAlvCombo::AsiakasVeroLaji asiakasVerolaji, int alvkoodi, bool ennakkolasku, const QDate &pvm)
 {
     addItem(QIcon(":/pic/netto-m.svg"),"10%", QVariant(AlvKoodi::MYYNNIT_NETTO + 10 * 10000 ));
+    addItem(QIcon(":/pic/netto-m.svg"),"13,5%", QVariant(AlvKoodi::MYYNNIT_NETTO + 135000 ));
     addItem(QIcon(":/pic/netto-m.svg"),"14%", QVariant(AlvKoodi::MYYNNIT_NETTO + 14 * 10000));
     addItem(QIcon(":/pic/netto-m.svg"),"24%", QVariant(AlvKoodi::MYYNNIT_NETTO + 24 * 10000 ));
     addItem(QIcon(":/pic/netto-m.svg"),"25,5%", QVariant(AlvKoodi::MYYNNIT_NETTO + 255000 ));
@@ -51,9 +52,9 @@ void LaskuAlvCombo::alusta(LaskuAlvCombo::AsiakasVeroLaji asiakasVerolaji, int a
     }
 
     if( kp()->onkoAlvVelvollinen(pvm) ) {
-        setCurrentIndex(pvm < QDate(2024,9,1) ? 2 : 3); // Alv 24
+        setCurrentIndex(4); // Alv 25,5
     } else {
-        setCurrentIndex(4);  // Veroton
+        setCurrentIndex(5);  // Veroton
     }
 }
 

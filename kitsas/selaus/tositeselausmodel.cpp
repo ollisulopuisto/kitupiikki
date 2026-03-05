@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
 
 #include <QPalette>
 

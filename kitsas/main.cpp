@@ -36,6 +36,7 @@
 
 #include <QFileInfo>
 #include <QCommandLineParser>
+#include <QtEnvironmentVariables>
 
 #include "aloitussivu/tervetulodialogi.h"
 #include "maaritys/ulkoasumaaritys.h"
@@ -52,6 +53,10 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(KITSAS_VERSIO);
     a.setOrganizationDomain("kitsas.fi");
     a.setOrganizationName("Kitsas oy");
+
+#if defined (Q_OS_LINUX)
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS","--disable-gpu");
+#endif
 
     KitsasLokiModel::alusta();  
 
@@ -110,9 +115,45 @@ int main(int argc, char *argv[])
 
     Kirjanpito::asetaInstanssi(&kirjanpito);
 
+#if defined (Q_OS_WIN)
+    // Kierretään Qt:n bugi resurssitiedostosta ladattujen fonttien käytössä
+    // PDF-tiedostoa luotaessa kopioimalla fontti ensin tilapäistiedostoon
+
+    QTemporaryDir dir;
+
+    if (dir.isValid())    {
+
+        dir.setAutoRemove(true);
+
+        QString tempPolku = dir.path();
+
+        QString sansPolku = tempPolku + "/FreeSans.ttf";
+        QFile::copy(":/aloitus/FreeSans.ttf",sansPolku);
+        QFontDatabase::addApplicationFont(sansPolku);
+
+        QString monoPolku = tempPolku + "/FreeMono.ttf";
+        QFile::copy(":/aloitus/FreeMono.ttf", monoPolku);
+        QFontDatabase::addApplicationFont(monoPolku);
+
+        QString code128Polku = tempPolku + "/code128_XL.ttf";
+        QFile::copy(":/lasku/code128_XL.ttf", code128Polku);
+        QFontDatabase::addApplicationFont(code128Polku);
+    }
+
+    else
+
+    {
+        QFontDatabase::addApplicationFont(":/aloitus/FreeSans.ttf");
+        QFontDatabase::addApplicationFont(":/aloitus/FreeMono.ttf");
+        QFontDatabase::addApplicationFont(":/lasku/code128_XL.ttf");
+    }
+#else
+
     QFontDatabase::addApplicationFont(":/aloitus/FreeSans.ttf");
     QFontDatabase::addApplicationFont(":/aloitus/FreeMono.ttf");
     QFontDatabase::addApplicationFont(":/lasku/code128_XL.ttf");
+
+#endif
 
     // Fonttimääritykset
     UlkoasuMaaritys::oletusfontti__ = a.font();

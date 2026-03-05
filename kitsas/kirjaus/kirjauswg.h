@@ -36,6 +36,7 @@ class KiertoWidget;
 class KommentitWidget;
 class TallennettuWidget;
 class KirjausSivu;
+class MaksatusWidget;
 
 /**
  * @brief Kirjausten muokkaus
@@ -169,6 +170,8 @@ protected:
     void tarkastaTuplatJaTallenna(int tila);
     void tuplaTietoSaapuu(QVariant* data, int tila = Tosite::KIRJANPIDOSSA);
 
+    void tabVaihtuu(int index);
+
     bool tarkastaHylkays();
     KirjausSivu* kirjausSivu();
 
@@ -194,6 +197,7 @@ protected:
     QWidget* lokiTab_;
     KiertoWidget* kiertoTab_;
     KommentitWidget* kommentitTab_;
+    MaksatusWidget* maksatusTab_;
 
     QList<int> selausLista_;
     Selauksesta selauksesta_ = EI_SELAUKSESTA;

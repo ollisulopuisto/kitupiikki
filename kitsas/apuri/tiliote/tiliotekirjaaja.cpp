@@ -71,7 +71,7 @@ TilioteKirjaaja::TilioteKirjaaja(SiirtoApuri *apuri):
 TilioteKirjaaja::~TilioteKirjaaja()
 {
     kp()->settings()->setValue("TilioteKirjaaja", saveGeometry());
-    delete ui;
+    // delete ui; //Ei tarvita enää kun ui on shared_ptr
 }
 
 void TilioteKirjaaja::asetaPvm(const QDate &pvm)
@@ -176,7 +176,9 @@ void TilioteKirjaaja::alaTabMuuttui(int tab)
             const Tili& valittuTili = ui->tiliEdit->valittuTili();
             paivitaVeroFiltteri( valittuTili.alvlaji() );
             const double tiliProsentti = valittuTili.alvprosentti();
-            const double vakioitu = tiliProsentti == 24.0 ? yleinenAlv(ui->pvmEdit->date()) / 100.0 : tiliProsentti;
+            const double vakioitu = tiliProsentti == 24.0 ? yleinenAlv(ui->pvmEdit->date()) / 100.0 : 
+                tiliProsentti == 14.00 ? keskimainenAlv(ui->pvmEdit->date()) / 100.0 : 
+                tiliProsentti;
             ui->alvProssaCombo->setCurrentText(QString("%L1 %").arg(vakioitu,0,'f',2));
             alvMuuttuu();
         }
@@ -349,7 +351,9 @@ void TilioteKirjaaja::tiliMuuttuu()
 
         if( kp()->onkoAlvVelvollinen( ui->pvmEdit->date() )) {
             paivitaVeroFiltteri( tili.alvlaji() );
-            const double alvProssa = tili.alvprosentti() == 24.0 ? yleinenAlv(ui->pvmEdit->date()) / 100.0 : tili.alvprosentti();
+            const double alvProssa = tili.alvprosentti() == 24.0 ? yleinenAlv(ui->pvmEdit->date()) / 100.0 : 
+                tili.alvprosentti() == 14.00 ? keskimainenAlv(ui->pvmEdit->date()) / 100.0 : 
+                tili.alvprosentti();
             ui->alvProssaCombo->setCurrentText(QString("%L1 %").arg(alvProssa, 0, 'f', 2));
         }
     }
@@ -427,6 +431,7 @@ void TilioteKirjaaja::tyhjenna()
     tiliMuuttuu();
 
     ui->viennitView->selectRow(0);
+
     ui->viennitView->hide();
 
     tarkastaTallennus();
@@ -510,7 +515,7 @@ void TilioteKirjaaja::alusta()
     veroFiltteri_->setFilterRole( VerotyyppiModel::KoodiTekstiRooli);
     veroFiltteri_->setSourceModel( kp()->alvTyypit());
     ui->alvCombo->setModel(veroFiltteri_);
-    ui->alvProssaCombo->addItems( QStringList() << "25,50 %" << "24,00 %" << "14,00 %" << "10,00 %");
+    ui->alvProssaCombo->addItems( QStringList() << "25,50 %" << "24,00 %" << "14,00 %" << "13,50 %" << "10,00 %");
     ui->alvProssaCombo->setValidator(new QRegularExpressionValidator(QRegularExpression("\\d{1,2}(,\\d{1,2})\\s?%?"),this));
 
     alaTabMuuttui(0);
@@ -599,7 +604,13 @@ void TilioteKirjaaja::lataa(const TilioteKirjausRivi &rivi)
 
     ui->viennitView->selectRow(0);
     ui->viennitView->setVisible( rivit_->rowCount() > 1 );
+
+    std::weak_ptr<Ui::TilioteKirjaaja> varmistusUi = ui;
     qApp->processEvents();
+    if (varmistusUi.expired()) {
+        return;
+    }
+
     naytaRivi();
 
     ui->pvmEdit->setDate(rivi.pvm());
@@ -705,10 +716,20 @@ void TilioteKirjaaja::naytaRivi()
 
     paivitaVeroFiltteri( ar.alvkoodi() );
     ui->alvProssaCombo->setCurrentText( ar.alvprosentti() ? QString("%L1 %").arg(ar.alvprosentti(), 0, 'f', 2 ) : QString() );
+
+    std::weak_ptr <Ui::TilioteKirjaaja> varmistusUI = ui; // Tieto ui:n olemassaolosta turvaan paikalliseen muuttujaan olion tuhoamisen varalta
+
     qApp->processEvents();
 
-    ui->eiVahennysCheck->setChecked( !ar.alvvahennys() );
-    ui->poistoaikaSpin->setValue( ar.poistoaika() / 12 );
+
+    //Käyttäjä on voinut jo sulkea dialogin, ui:n olemassaolo pitää tarkastaa
+
+
+    if (!varmistusUI.expired()) {
+        ui->eiVahennysCheck->setChecked( !ar.alvvahennys() );
+        ui->poistoaikaSpin->setValue( ar.poistoaika() / 12 );
+    }
+
 
 }
 
